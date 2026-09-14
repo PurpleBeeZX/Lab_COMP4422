@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #777777;
+                text-align: center;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="c" width="512" height="512"></canvas>
+        <script>
+            const WIDTH = 512, HEIGHT = 512;
+            const ctx = document.getElementById("c").getContext("2d");
+            const img = ctx.createImageData(WIDTH, HEIGHT);
+
+            function putPixel(img, x, y, r, g, b) {
+              if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+              const i = (x + y * WIDTH) * 4;
+              img.data[i    ] = r;
+              img.data[i + 1] = g;
+              img.data[i + 2] = b;
+              img.data[i + 3] = 0xFF;
+            }
+            function hex2rgb(hex) {
+              return {
+                r: hex >> 16 & 255,
+                g: hex >> 8 & 255,
+                b: hex & 255,
+              }
+            }
+
+            function fillRectangle(img, x, y, w, h, color) {
+              const {r, g, b} = hex2rgb(color);
+              for (let dy=0; dy<h; dy++) {
+                for (let dx=0; dx<w; dx++) {
+                    putPixel(img, x + dx, y + dy, r, g, b);
+                }
+              }
+            }
+
+
+            fillRectangle(img, 30, 40, 20, 70, 0xFFFF00);
+            putPixel(img, 20, 20, 0xFF, 0xFF, 0xFF);
+
+            ctx.putImageData(img, 0, 0);
+        </script>
+    </body>
+</html>
