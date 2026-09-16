@@ -29,6 +29,8 @@ class Graphic {
     
     putPixel(x, y, r, g, b) {
         if (x < 0 || x >= this.WIDTH || y < 0 || y >= this.HEIGHT) return;
+        x = Math.floor(x);
+        y = Math.floor(y);
         const i = (x + y * this.WIDTH) * 4;
         this.img.data[i] = r;
         this.img.data[i + 1] = g;
