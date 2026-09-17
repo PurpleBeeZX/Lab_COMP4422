@@ -4,6 +4,9 @@ class Vec3 {
         this.y = y;
         this.z = z;
     }
+    static fromArray([x, y, z]) {
+        return new Vec3(x, y, z);
+    }
     add(that) {
         return new Vec3(this.x + that.x, this.y + that.y, this.z + that.z);
     }
@@ -33,5 +36,12 @@ class Vec3 {
         const length = this.length();
         if (length == 0) return new Vec3(0, 0, 0);
         return new Vec3(this.x / length, this.y / length, this.z / length);
+    }
+    applyMatrix([r1, r2, r3]) {
+        return new Vec3(
+            this.dot(r1),
+            this.dot(r2),
+            this.dot(r3),
+        );
     }
 }
