@@ -51,6 +51,17 @@ class Graphic {
         }
     }
 
+    fillCircle(x, y, radius, color) {
+        const { r, g, b } = Graphic.hex2rgb(color);
+        for (let dy = -radius; dy < radius; dy++) {
+            for (let dx = -radius; dx < radius; dx++) {
+                if (dx*dx + dy*dy - radius*radius <= 0) {
+                    this.putPixel(x + dx, y + dy, r, g, b);
+                }
+            }
+        }
+    }
+
     fillBackground(color) {
         this.fillRectangle(0, 0, this.WIDTH, this.HEIGHT, color);
     }
