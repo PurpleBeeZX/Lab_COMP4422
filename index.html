@@ -12,12 +12,16 @@
         </style>
     </head>
     <body>
-        <canvas id="c" width="512" height="512"></canvas>
-        <script src="math/Vec3.js"></script>
-        <script src="Graphic.js"></script>
-        <script src="simulation.js"></script>
+        <canvas id="c" width="1920" height="1080"></canvas>
+        <script src="Vec3.js"></script>
+        <script src="Vec4.js"></script>
+        <script src="Mat4.js"></script>
+        <script src="objLoader.js"></script>
         <script>
-            simulation();
+            canvas = document.getElementById("c");
+            gl = canvas.getContext("webgl2");
         </script>
+        <script src="shader.js"> </script>
+        <script src="main.js"></script>
     </body>
 </html>
