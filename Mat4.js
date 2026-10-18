@@ -1,15 +1,15 @@
 class Mat4 {
     constructor(
-        e11, e12, e13, e14,
-        e21, e22, e23, e24,
-        e31, e32, e33, e34,
-        e41, e42, e43, e44,
+      e11, e21, e31, e41,
+      e12, e22, e32, e42,
+      e13, e23, e33, e43,
+      e14, e24, e34, e44
     ) {
-        this.plain_arr = [
-            e11, e12, e13, e14,
-            e21, e22, e23, e24,
-            e31, e32, e33, e34,
-            e41, e42, e43, e44,
+        this.plainArr = [
+          e11, e21, e31, e41,
+          e12, e22, e32, e42,
+          e13, e23, e33, e43,
+          e14, e24, e34, e44
         ];
     }
     static fromArray(arr) {
@@ -20,31 +20,31 @@ class Mat4 {
             throw new RangeError(
                 "trying to access index that is out of range [1, 4]",
             );
-        const index = (i - 1) * 4 + (j - 1);
-        return this.plain_arr[index];
+        const index = (j - 1) * 4 + (i - 1);
+        return this.plainArr[index];
     }
     set(i, j, value) {
         if (i < 1 || i > 4 || j < 1 || j > 4)
             throw new RangeError(
                 "trying to access index that is out of range [1, 4]",
             );
-        const index = (i - 1) * 4 + (j - 1);
-        this.plain_arr[index] = value;
+        const index = (j - 1) * 4 + (i - 1);
+        this.plainArr[index] = value;
     }
     add(that) {
-        return this.plain_arr.map((value, i) => val + that.plain_arr[i]);
+        return Mat4.fromArray(this.plainArr.map((val, i) => val + that.plainArr[i]));
     }
     sub(that) {
-        return this.plain_arr.map((value, i) => val - that.plain_arr[i]);
+        return Mat4.fromArray(this.plainArr.map((val, i) => val - that.plainArr[i]));
     }
     scale(scale) {
-        return this.plain_arr.map((value, i) => val * scale);
+        return Mat4.fromArray(this.plainArr.map((val, i) => val * scale));
     }
     mul(that) {
         let c = new Array(16);
         for (let i = 1; i <= 4; i++) {
             for (let j = 1; j <= 4; j++) {
-                const index = (i - 1) * 4 + (j - 1);
+                const index = (j - 1) * 4 + (i - 1);
                 c[index] = 0;
                 for (let k = 1; k <= 4; k++) {
                     c[index] += this.get(i, k) * that.get(k, j);
@@ -52,16 +52,62 @@ class Mat4 {
             }
         }
 
-        return new Mat4(c);
+        return Mat4.fromArray(c);
     }
     applyTo(vec4) {
-        let arr = [ vec4.x, vec4.y, vec4.z, vec4.w, ];
-        let res = [ 0, 0, 0, 0 ];
+        let arr = [vec4.x, vec4.y, vec4.z, vec4.w];
+        let res = [0, 0, 0, 0];
         for (let j = 1; j <= 4; j++) {
             for (let i = 1; i <= 4; i++) {
-                res[i - 1] += arr[j-1] * this.get(i, j);
+                res[i - 1] += arr[j - 1] * this.get(i, j);
             }
         }
         return Vec4.fromArray(res);
+    }
+
+    static identity() {
+        return new Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    }
+
+    static translation(tx, ty, tz) {
+      return new Mat4(
+          1, 0, 0, 0,
+          0, 1, 0, 0,
+          0, 0, 1, 0,
+          tx, ty, tz, 1
+      );
+    }
+
+    static perspective(fovRad, aspect, near, far) {
+            let f = 1.0 / Math.tan(fovRad / 2);
+            let nf = 1 / (near - far);
+            return Mat4.fromArray([
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (far + near) * nf, -1,
+                0, 0, 2 * far * near * nf, 0
+            ]);
+        }
+        
+    static rotationX(rad) {
+        let c = Math.cos(rad);
+        let s = Math.sin(rad);
+        return new Mat4(
+            1,  0,  0,  0,
+            0,  c,  s,  0,
+            0, -s,  c,  0,
+            0,  0,  0,  1
+        );
+    }
+        
+    static rotationY(rad) {
+        let c = Math.cos(rad);
+        let s = Math.sin(rad);
+        return new Mat4(
+            c,  0, -s,  0,
+            0,  1,  0,  0,
+            s,  0,  c,  0,
+            0,  0,  0,  1
+        );
     }
 }
