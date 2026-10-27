@@ -1,50 +1,113 @@
 async function loadObject(url) {
-    let responce = await fetch(url);
-    let source = await responce.text();
-    return parseObject(source);
+    const objText = await (await fetch(url)).text();
+    let materialFile = null;
+    for (const line of objText.split("\n")) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("mtllib ")) {
+            materialFile = trimmed.substring(7).trim();
+            break;
+        }
+    }
+    let material = null;
+    if (materialFile) {
+        const basePath =
+            url.substring(0, url.lastIndexOf("/") + 1);
+        material = await loadMtl(
+            basePath + materialFile
+        );
+    }
+    const mesh = parseObject(objText);
+    return {
+        ...mesh,
+        material
+    }
+}
+
+async function loadMtl(url) {
+    const text = await (await fetch(url)).text();
+
+    let mapKd = null;
+
+    for (const line of text.split("\n")) {
+        const parts = line.trim().split(/\s+/);
+
+        if (parts[0] === "map_Kd") {
+            mapKd = parts.slice(1).join(" ");
+        }
+    }
+
+    return { mapKd };
 }
 
 function parseObject(source) {
-    let vertices = [];
-    let normals = [];
-    let textures = [];
-    let indices = [];
+    const positions = [];
+    const texcoords = [];
+    const normals = [];
+    const vertices = [];
+    const textures = [];
+    const outNormals = [];
+    const indices = [];
+    const vertexMap = new Map();
     const lines = source.split('\n');
+
     for (let line of lines) {
         line = line.trim();
-        if (!line || line == "" || line.startsWith("#")) continue;
-
+        if (!line || line.startsWith('#')) {
+            continue;
+        }
         const parts = line.split(/\s+/);
-        const type = parts[0];
-
-        switch (type) {
-            case "v": {
-                vertices.push(parseFloat(parts[1]));
-                vertices.push(parseFloat(parts[2]));
-                vertices.push(parseFloat(parts[3]));
+        switch (parts[0]) {
+            case "v":
+                positions.push([
+                    parseFloat(parts[1]),
+                    parseFloat(parts[2]),
+                    parseFloat(parts[3])
+                ]);
                 break;
-            }
-            case "vn": {
-                normals.push(parseFloat(parts[1]));
-                normals.push(parseFloat(parts[2]));
-                normals.push(parseFloat(parts[3]));
+            case "vt":
+                texcoords.push([
+                    parseFloat(parts[1]),
+                    parseFloat(parts[2])
+                ]);
                 break;
-            }
-            case "vt": {
-                textures.push(parseFloat(parts[1]));
-                textures.push(parseFloat(parts[2]));
-                textures.push(parseFloat(parts[3]));
+            case "vn":
+                normals.push([
+                    parseFloat(parts[1]),
+                    parseFloat(parts[2]),
+                    parseFloat(parts[3])
+                ]);
                 break;
-            }
-            case "f": {
-                indices.push(parseInt(parts[1].split('/')[0]) - 1);
-                indices.push(parseInt(parts[2].split('/')[0]) - 1);
-                indices.push(parseInt(parts[3].split('/')[0]) - 1);
-                break;
-            }
-            default:
+            case "f":
+                for (let i = 1; i <= 3; i++) {
+                    const key = parts[i];
+                    if (!vertexMap.has(key)) {
+                        const [v, vt, vn] = key
+                            .split('/')
+                            .map(x => parseInt(x) - 1);
+                        const pos = positions[v];
+                        vertices.push( pos[0], pos[1], pos[2]);
+                        if (vt >= 0) {
+                            const uv = texcoords[vt];
+                            textures.push( uv[0], uv[1]);
+                        }
+                        if (vn >= 0) {
+                            const n = normals[vn];
+                            outNormals.push( n[0], n[1], n[2]);
+                        }
+                        vertexMap.set( key, vertexMap.size);
+                    }
+                    indices.push( vertexMap.get(key));
+                }
                 break;
         }
     }
-    return { vertices: vertices, normals: normals, textures: textures, indices: indices };
+    console.log("positions", positions.length);
+    console.log("texcoords", texcoords.length);
+    console.log("normals", normals.length);
+    return {
+        vertices,
+        textures,
+        normals: outNormals,
+        indices
+    };
 }

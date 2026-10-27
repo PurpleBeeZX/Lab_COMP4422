@@ -1,5 +1,7 @@
 // setup
 let keys = [];
+let mouseDX = 0;
+let mouseDY = 0;
 window.addEventListener("keydown", (e) => {
     keys[e.code] = true;
 });
@@ -7,11 +9,30 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => {
     keys[e.code] = false;
 });
+window.addEventListener('click', () => {
+      canvas.requestPointerLock();
+    });
+window.addEventListener('mousemove', (e) => {
+    if (document.pointerLockElement === canvas) {
+        mouseDX += e.movementX;
+        mouseDY += e.movementY;
+    }
+});
 
 // load obj
-loadObject("./monkey.obj").then(({ vertices: verticesArr, indices: indicesArr }) => {
-    vertices = new Float32Array(verticesArr);
-    indices = new Uint16Array(indicesArr);
+loadObject("./FuturisticGirl.obj").then((obj) => {
+    console.log(obj);
+    if (obj.material && obj.material.mapKd) {
+        texture = initTextures(obj.material.mapKd);
+    } else {
+        console.error("MTL texture not found");
+        return;
+    }
+    vertices = new Float32Array(obj.vertices);
+    textures = new Float32Array(obj.textures);
+    indices = new Uint32Array(obj.indices);
+
+
     main();
 });
 
@@ -28,11 +49,25 @@ function main() {
     const ibo = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+    
+    const textureBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, textures, gl.STATIC_DRAW);
+
+    const textureCoordAttribute = gl.getAttribLocation(program, "a_tex_coord");
+    gl.enableVertexAttribArray(textureCoordAttribute);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
     gl.enable(gl.DEPTH_TEST);
     gl.clearColor(0.3, 0.3, 0.3, 1.0);
 
+
     const uMVPLoc = gl.getUniformLocation(program, "u_mvp");
+    
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(gl.getUniformLocation( program, "u_sampler"), 0);
 
 
     // setup model
@@ -45,7 +80,8 @@ function main() {
 
     // loop
     function tick() {
-        const moveSpeed = 0.1;
+        const moveSpeed = 0.05;
+        const sensitive = 3/100;
         let forwardX = -Math.sin(cameraYaw) * moveSpeed;
         let forwardZ = -Math.cos(cameraYaw) * moveSpeed;
         let rightX = Math.cos(cameraYaw) * moveSpeed;
@@ -55,13 +91,14 @@ function main() {
         if (keys["KeyS"]) { camera = camera.add(new Vec3(-forwardX, 0, -forwardZ)); }
         if (keys["KeyA"]) { camera = camera.add(new Vec3(-rightX, 0, -rightZ)); }
         if (keys["KeyD"]) { camera = camera.add(new Vec3(rightX, 0, rightZ)); }
-        if (keys["Space"]) { camera = camera.add(new Vec3(0, 0.1, 0)); }
-        if (keys["ShiftLeft"]) { camera = camera.add(new Vec3(0, -0.1, 0)); }
-        
-        if (keys["ArrowLeft"]) cameraYaw += 0.01;
-        if (keys["ArrowRight"]) cameraYaw -= 0.01;
-        if (keys["ArrowUp"]) cameraPitch += 0.01;
-        if (keys["ArrowDown"]) cameraPitch -= 0.01;
+        if (keys["Space"]) { camera = camera.add(new Vec3(0, moveSpeed, 0)); }
+        if (keys["ShiftLeft"]) { camera = camera.add(new Vec3(0, -moveSpeed, 0)); }
+
+        cameraYaw   -= mouseDX * sensitive;
+        cameraPitch -= mouseDY * sensitive;
+        mouseDX = 0;
+        mouseDY = 0;
+
         cameraPitch = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, cameraPitch));
 
         let projectionMatrix = Mat4.perspective(
@@ -88,7 +125,8 @@ function main() {
         gl.uniformMatrix4fv(uMVPLoc, false, new Float32Array(mvp.plainArr));
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_INT, 0);
 
         requestAnimationFrame(tick);
     }

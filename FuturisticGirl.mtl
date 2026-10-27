@@ -1,0 +1,18 @@
+# Blender 5.0.1 MTL File: 'FuturisticGirl.blend'
+# www.blender.org
+
+newmtl FuturisticGirl
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Kd FuturisticGirl.fbm/FuturisticGirl_01_basecolor.jpg
+map_Pm FuturisticGirl.fbm/FuturisticGirl_01_metallic.jpg
+map_Pr FuturisticGirl.fbm/FuturisticGirl_01_roughness.jpg
+map_Bump -bm 0.050000 FuturisticGirl.fbm/FuturisticGirl_01_normal.jpg
