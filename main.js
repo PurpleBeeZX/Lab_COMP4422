@@ -257,7 +257,7 @@ function updateCar(dt, carNode, steerDelta) {
 
     const speedFactor = Math.min(1, carSpeed / CAR_TURN_FULL_SPEED);
     if (carSpeed > 0.0001 && carSteering !== 0) {
-        const turn = carSteering * CAR_TURN_SPEED * speedFactor * dt;
+        const turn = -carSteering * CAR_TURN_SPEED * speedFactor * dt;
         carForward = carForward.rotateAroundAxis(up, turn).normalize();
     }
     carForward = tangentForward(up, carForward);
