@@ -1,4 +1,4 @@
-async function loadObject(url) {
+async function loadObject(url, loadMaterial = true) {
     const objText = await (await fetch(url)).text();
     let materialFile = null;
     for (const line of objText.split("\n")) {
@@ -9,7 +9,7 @@ async function loadObject(url) {
         }
     }
     let material = null;
-    if (materialFile) {
+    if (loadMaterial && materialFile) {
         const basePath =
             url.substring(0, url.lastIndexOf("/") + 1);
         material = await loadMtl(
@@ -24,7 +24,12 @@ async function loadObject(url) {
 }
 
 async function loadMtl(url) {
-    const text = await (await fetch(url)).text();
+    const res = await fetch(url);
+    if (!res.ok) {
+        console.error("mtl failed", url);
+        return { mapKd: null };
+    }
+    const text = await res.text();
 
     let mapKd = null;
 
@@ -89,10 +94,14 @@ function parseObject(source) {
                         if (vt >= 0) {
                             const uv = texcoords[vt];
                             textures.push( uv[0], uv[1]);
+                        } else {
+                            textures.push(0, 0);
                         }
                         if (vn >= 0) {
                             const n = normals[vn];
                             outNormals.push( n[0], n[1], n[2]);
+                        } else {
+                            outNormals.push(0, 0, 0);
                         }
                         vertexMap.set( key, vertexMap.size);
                     }

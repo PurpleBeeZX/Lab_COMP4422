@@ -78,6 +78,36 @@ class Mat4 {
       );
     }
 
+    static scaling(sx, sy, sz) {
+      return new Mat4(
+          sx, 0, 0, 0,
+          0, sy, 0, 0,
+          0, 0, sz, 0,
+          0, 0, 0, 1
+      );
+    }
+
+    static fromBasis(right, up, forward) {
+      return new Mat4(
+          right.x, right.y, right.z, 0,
+          up.x, up.y, up.z, 0,
+          forward.x, forward.y, forward.z, 0,
+          0, 0, 0, 1
+      );
+    }
+
+    static lookAt(eye, target, up) {
+      const zAxis = eye.sub(target).normalize();
+      const xAxis = up.cross(zAxis).normalize();
+      const yAxis = zAxis.cross(xAxis);
+      return new Mat4(
+          xAxis.x, yAxis.x, zAxis.x, 0,
+          xAxis.y, yAxis.y, zAxis.y, 0,
+          xAxis.z, yAxis.z, zAxis.z, 0,
+          -xAxis.dot(eye), -yAxis.dot(eye), -zAxis.dot(eye), 1
+      );
+    }
+
     static perspective(fovRad, aspect, near, far) {
             let f = 1.0 / Math.tan(fovRad / 2);
             let nf = 1 / (near - far);

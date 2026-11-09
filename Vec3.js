@@ -36,6 +36,13 @@ class Vec3 {
       this.x * that.y - this.y * that.x,
     );
   }
+  rotateAroundAxis(axis, angle) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    return this.scale(c)
+      .add(axis.cross(this).scale(s))
+      .add(axis.scale(axis.dot(this) * (1 - c)));
+  }
   length() {
     const xx = this.x * this.x;
     const yy = this.y * this.y;
