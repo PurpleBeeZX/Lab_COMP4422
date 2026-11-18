@@ -15,12 +15,11 @@ let resizeRequested = true;
 let gameState = "menu";
 let runTime = 0;
 let runDistance = 0;
-let coinsCollected = 0;
 let carriageCount = 1;
 let runMaxCarriages = 1;
 
-const bestStats = { time: 0, distance: 0, coins: 0, carriages: 1 };
-const lastStats = { time: 0, distance: 0, coins: 0, carriages: 1, hasRun: false };
+const bestStats = { time: 0, distance: 0, carriages: 1 };
+const lastStats = { time: 0, distance: 0, carriages: 1, hasRun: false };
 
 const hud = document.getElementById("hud");
 const steeringOverlay = document.getElementById("steering");
@@ -358,7 +357,6 @@ function statsText(stats, label) {
     return `<div class="stats-title">${label}</div>` +
         `Time: ${stats.time.toFixed(1)}s<br>` +
         `Distance: ${stats.distance.toFixed(1)}<br>` +
-        `Coins: ${stats.coins}<br>` +
         `Carriages: ${stats.carriages}`;
 }
 
@@ -376,7 +374,7 @@ function updateResultPanel(title, message, buttonText) {
 }
 
 function updateRunHud() {
-    hud.textContent = `TRAIN | ${trainSpeed.toFixed(1)} u/s | ${carriageCount} cars | ${coinsCollected} coins | ${runTime.toFixed(1)}s`;
+    hud.textContent = `TRAIN | ${trainSpeed.toFixed(1)} u/s | ${carriageCount} cars | ${runTime.toFixed(1)}s`;
 }
 
 function updateSteeringHud() {
@@ -754,7 +752,6 @@ function main(assets) {
         gameState = "playing";
         runTime = 0;
         runDistance = 0;
-        coinsCollected = 0;
         runMaxCarriages = 1;
         paused = false;
         trainPos = new Vec3(TRAIN_START_DIR.x, TRAIN_START_DIR.y, TRAIN_START_DIR.z);
@@ -796,12 +793,10 @@ function main(assets) {
         trainSpeed = 0;
         lastStats.time = runTime;
         lastStats.distance = runDistance;
-        lastStats.coins = coinsCollected;
         lastStats.carriages = carriageCount;
         lastStats.hasRun = true;
         bestStats.time = Math.max(bestStats.time, runTime);
         bestStats.distance = Math.max(bestStats.distance, runDistance);
-        bestStats.coins = Math.max(bestStats.coins, coinsCollected);
         bestStats.carriages = Math.max(bestStats.carriages, runMaxCarriages);
         updateResultPanel(
             "CRASHED",
@@ -822,7 +817,6 @@ function main(assets) {
                 item.direction = findCoinRespawnDirection(item);
                 item.active = true;
                 item.node.visible = true;
-                coinsCollected++;
                 setCarriageCount(carriageCount + 1);
             }
         }
